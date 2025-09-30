@@ -1,0 +1,9 @@
+# Python
+__pycache__/
+*.pyc
+.env
+.streamlit/secrets.toml
+
+# 系统文件
+.DS_Store
+Thumbs.db
