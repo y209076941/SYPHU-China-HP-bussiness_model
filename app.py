@@ -14,6 +14,8 @@ import json
 import re
 import io
 import math
+import streamlit.components.v1 as components
+import textwrap
 
 # ---------------------------
 # Page Configuration
@@ -1517,63 +1519,64 @@ def render_clinical_trials(data_manager):
         return
 
     for trial in trials:
-        with st.container():
-            status_color = "#10b981" if trial['status'] == "Recruiting" else "#f59e0b"
+        status_color = "#10b981" if trial['status'] == "Recruiting" else "#f59e0b"
 
-            # Build interventions HTML
-            interventions_html = "".join([
-                f'<span style="background: rgba(102,126,234,0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; color:white; margin-right: 0.5rem; margin-bottom: 0.5rem; display: inline-block;">{intervention}</span>'
-                for intervention in trial['interventions']
-            ])
+        interventions_html = "".join([
+            f'<span style="background: rgba(102,126,234,0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; color:white; margin-right: 0.5rem; margin-bottom: 0.5rem; display: inline-block;">{intervention}</span>'
+            for intervention in trial['interventions']
+        ])
 
-            st.markdown(f"""
-            <div class="data-card">
-                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                    <h4 style="margin:0; color:white; flex:1;">{trial['title']}</h4>
-                    <div style="text-align: right;">
-                        <span style="background: {status_color}20; color:{status_color}; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid {status_color}40;">
-                            {trial['status']}
-                        </span>
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                    <div style="text-align: center;">
-                        <div style="font-size: 0.9rem; color:rgba(255,255,255,0.7);">Sponsor</div>
-                        <div style="font-weight: bold; color:white;">{trial['sponsor']}</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 0.9rem; color:rgba(255,255,255,0.7);">Study Phase</div>
-                        <div style="font-weight: bold; color:white;">{trial['phase']}</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 0.9rem; color:rgba(255,255,255,0.7);">Expected Completion</div>
-                        <div style="font-weight: bold; color:white;">{trial.get('completion', 'N/A')}</div>
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 1rem;">
-                    <div style="font-size: 0.9rem; color:rgba(255,255,255,0.7); margin-bottom: 0.5rem;">Interventions</div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                        {interventions_html}
-                    </div>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <small style="color:rgba(255,255,255,0.6);">Patient Count: {trial.get('patients', 'N/A')}</small>
-                    <a href="{trial['url']}" target="_blank" style="
-                        background: linear-gradient(135deg, #667eea, #764ba2);
-                        color: white;
-                        padding: 8px 16px;
-                        border-radius: 8px;
-                        text-decoration: none;
-                        font-weight: 500;
-                    ">
-                        🔍 View Details
-                    </a>
+        card_html = textwrap.dedent(f"""
+        <div style="background: #1e293b; padding: 1.5rem; border-radius: 1rem; margin-bottom: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <h4 style="margin:0; color:white; flex:1;">{trial['title']}</h4>
+                <div style="text-align: right;">
+                    <span style="background: {status_color}20; color:{status_color}; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid {status_color}40;">
+                        {trial['status']}
+                    </span>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div style="text-align: center;">
+                    <div style="font-size: 0.9rem; color:rgba(255,255,255,0.7);">Sponsor</div>
+                    <div style="font-weight: bold; color:white;">{trial['sponsor']}</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 0.9rem; color:rgba(255,255,255,0.7);">Study Phase</div>
+                    <div style="font-weight: bold; color:white;">{trial['phase']}</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 0.9rem; color:rgba(255,255,255,0.7);">Expected Completion</div>
+                    <div style="font-weight: bold; color:white;">{trial.get('completion', 'N/A')}</div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <div style="font-size: 0.9rem; color:rgba(255,255,255,0.7); margin-bottom: 0.5rem;">Interventions</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    {interventions_html}
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <small style="color:rgba(255,255,255,0.6);">Patient Count: {trial.get('patients', 'N/A')}</small>
+                <a href="{trial['url']}" target="_blank" style="
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-weight: 500;
+                ">
+                    🔍 View Details
+                </a>
+            </div>
+        </div>
+        """)
+
+        # 用 iframe 渲染 HTML，保证不会被当成代码块
+        components.html(card_html, height=300, scrolling=True)
 
 
 # ---------------------------
