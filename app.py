@@ -16,6 +16,7 @@ import io
 import math
 import streamlit.components.v1 as components
 import textwrap
+import feedparser
 
 # ---------------------------
 # Page Configuration
@@ -355,32 +356,62 @@ class EnhancedDataManager:
     # Other Data Acquisition: News, Clinical Trials
     @st.cache_data(ttl=900)
     def get_market_news(_self):
+        articles = []
         if not _self.news_api_key:
             return {"total_articles": 0, "articles": []}
-        queries = ['"liver cancer" drug', 'hepatocellular carcinoma treatment', '肝癌 药物']
-        articles = []
-        for q in queries[:2]:
-            try:
-                url = f'https://newsapi.org/v2/everything?q={q}&language=en&sortBy=publishedAt&pageSize=3&apiKey={_self.news_api_key}'
-                r = requests.get(url, timeout=10)
-                r.raise_for_status()
-                data = r.json()
-                for a in data.get('articles', []):
-                    if not any(x['title'] == a['title'] for x in articles):
-                        articles.append({
-                            'title': a['title'], 'url': a['url'],
-                            'source': a.get('source', {}).get('name', 'Unknown'),
-                            'published_at': a.get('publishedAt', ''),
-                            'description': (a.get('description', '')[:200] + '...') if a.get('description') else ''
-                        })
-            except Exception:
-                continue
+        elif _self.news_api_key:
+            queries = ['"liver cancer" drug', 'hepatocellular carcinoma treatment', '肝癌 药物']
+            for q in queries[:2]:
+                try:
+                    url = f'https://newsapi.org/v2/everything?q={q}&language=en&sortBy=publishedAt&pageSize=3&apiKey={_self.news_api_key}'
+                    r = requests.get(url, timeout=10)
+                    r.raise_for_status()
+                    data = r.json()
+                    for a in data.get('articles', []):
+                        if not any(x['title'] == a['title'] for x in articles):
+                            articles.append({
+                                'title': a['title'],
+                                'url': a['url'],
+                                'source': a.get('source', {}).get('name', 'Unknown'),
+                                'published_at': a.get('publishedAt', ''),
+                                'description': (a.get('description', '')[:200] + '...') if a.get('description') else ''
+                            })
+                except Exception:
+                    continue
         if not articles:
-            articles = [{'title': 'Novel Liver Cancer Immunotherapy Combination Reaches Primary Endpoint', 'url': '#',
-                         'source': 'Medical Intelligence',
-                         'published_at': datetime.now().isoformat(),
-                         'description': 'PD-1 inhibitor combined with anti-angiogenic drugs significantly prolongs survival...'}]
+            rss_sources = {
+                "Nature": "https://www.nature.com/nature.rss",
+                "Nature Medicine": "https://www.nature.com/nm.rss",
+                "Cancer Cell": "https://www.cell.com/cancer-cell/current.rss",
+                "Science": "https://www.science.org/action/showFeed?type=etoc&feed=rss&jc=science",
+                "The Lancet": "https://www.thelancet.com/rssfeed/lancet_current.xml",
+                "NEJM": "https://www.nejm.org/action/showFeed?jc=nejm&type=etoc&feed=rss",
+            }
+            for name, url in rss_sources.items():
+                try:
+                    feed = feedparser.parse(url)
+                    for entry in feed.entries[:2]:  # 每个源取 2 条
+                        articles.append({
+                            'title': f"[{name}] {entry.title}",
+                            'url': entry.link,
+                            'source': name,
+                            'published_at': entry.get('published', ''),
+                            'description': entry.get('summary', '')[:200] + '...' if entry.get('summary') else ''
+                        })
+                except Exception:
+                    continue
+ 
+        if not articles:
+            articles = [{
+                'title': 'Novel Liver Cancer Immunotherapy Combination Reaches Primary Endpoint',
+                'url': '#',
+                'source': 'Medical Intelligence',
+                'published_at': datetime.now().isoformat(),
+                'description': 'PD-1 inhibitor combined with anti-angiogenic drugs significantly prolongs survival...'
+            }]
+
         return {"total_articles": len(articles), "articles": articles[:5]}
+
 
     @st.cache_data(ttl=3600)
     def get_clinical_trials(_self):
