@@ -363,7 +363,7 @@ class EnhancedDataManager:
             queries = ['"liver cancer" drug', 'hepatocellular carcinoma treatment', '肝癌 药物']
             for q in queries[:2]:
                 try:
-                    url = f'https://gnews.io/api/v4/search?q=Google&lang=en&max=5&apikey={_self.news_api_key}'
+                    url = f'https://gnews.io/api/v4/search?lang=en&max=5&apikey={_self.news_api_key}'
                     r = requests.get(url, timeout=10)
                     r.raise_for_status()
                     data = r.json()
@@ -1674,4 +1674,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
